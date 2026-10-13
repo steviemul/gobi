@@ -1,6 +1,8 @@
 package server
 
 import (
+	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -44,6 +46,22 @@ func (sl *GobiListener) Serve() error {
 
 func handleConnection(conn net.Conn) {
 	defer conn.Close()
+
+	reader := bufio.NewReader(conn)
+
+	request, err := ParseRequest(reader)
+
+	if errors.Is(err, ErrMalformedRequest) {
+		writeResponse(conn, "400 Bad Request", "Malformed request\n")
+		return
+	}
+
+	if err != nil {
+		log.Println("Failed to read request:", err)
+		return
+	}
+
+	log.Println("Parsed request:", request.method, request.target, request.version, request.headers)
 
 	writeResponse(conn, "200 OK", "Hello from my Go server!\n")
 }
