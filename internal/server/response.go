@@ -1,0 +1,42 @@
+package server
+
+import (
+	"fmt"
+	"strconv"
+)
+
+type GobiResponse struct {
+	status  string
+	version string
+	body    string
+	headers map[string]string
+}
+
+func (gr *GobiResponse) toString() string {
+
+	response := fmt.Sprintf("HTTP/%s %s\r\n", gr.version, gr.status)
+
+	for name, value := range gr.headers {
+		response = response + fmt.Sprintf("%s: %s\r\n", name, value)
+	}
+
+	response = response + fmt.Sprintf("\r\n%s", gr.body)
+
+	return response
+}
+
+func BuildResponse(version string, status string, body string) (GobiResponse, error) {
+
+	headers := make(map[string]string)
+
+	headers["Content-Type"] = "text/plain; charset=utf-8"
+	headers["Content-Length"] = strconv.Itoa(len(body))
+	headers["Connection"] = "close"
+
+	return GobiResponse{
+		version: version,
+		status:  status,
+		headers: headers,
+		body:    body,
+	}, nil
+}

@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"io"
 	"log"
 	"net"
@@ -56,31 +55,26 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
+	if errors.Is(err, ErrBodyTooLarge) {
+		writeResponse(conn, "413 Content Too Large", "Request body too large\n")
+		return
+	}
+
 	if err != nil {
 		log.Println("Failed to read request:", err)
 		return
 	}
 
-	log.Println("Parsed request:", request.method, request.target, request.version, request.headers)
+	log.Println("Parsed request:", request.method, request.target, request.version, request.headers, request.body)
 
 	writeResponse(conn, "200 OK", "Hello from my Go server!\n")
 }
 
 func writeResponse(conn net.Conn, status string, body string) {
 
-	response := fmt.Sprintf(
-		"HTTP/1.1 %s\r\n"+
-			"Content-Type: text/plain; charset=utf-8\r\n"+
-			"Content-Length: %d\r\n"+
-			"Connection: close\r\n"+
-			"\r\n"+
-			"%s",
-		status,
-		len(body),
-		body,
-	)
+	response, _ := BuildResponse("1.1", status, body)
 
-	if _, err := io.WriteString(conn, response); err != nil {
+	if _, err := io.WriteString(conn, response.toString()); err != nil {
 		log.Println("Failed to write response", err)
 	}
 }

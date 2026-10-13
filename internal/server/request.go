@@ -3,15 +3,24 @@ package server
 import (
 	"bufio"
 	"errors"
+	"io"
+	"strconv"
 	"strings"
 )
 
+const (
+	CONTENT_LENGTH = "content-length" // header names are lowercased by parseHeaders
+	MAX_BODY_SIZE  = 1 << 20          // 1 MiB
+)
+
 var ErrMalformedRequest = errors.New("malformed request")
+var ErrBodyTooLarge = errors.New("request body too large")
 
 type GobiRequest struct {
 	method  string
 	target  string
 	version string
+	body    string
 	headers map[string]string
 }
 
@@ -37,12 +46,48 @@ func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
 		return GobiRequest{}, err
 	}
 
+	body, err := parseBody(reader, headers)
+
+	if err != nil {
+		return GobiRequest{}, err
+	}
+
 	return GobiRequest{
 		method:  parts[0],
 		target:  parts[1],
 		version: parts[2],
+		body:    body,
 		headers: headers,
 	}, nil
+}
+
+// parseBody reads exactly Content-Length bytes from reader. A request without the header has no body.
+// It returns ErrMalformedRequest for an invalid length and ErrBodyTooLarge above MAX_BODY_SIZE.
+func parseBody(reader *bufio.Reader, headers map[string]string) (string, error) {
+
+	value, ok := headers[CONTENT_LENGTH]
+
+	if !ok {
+		return "", nil
+	}
+
+	length, err := strconv.Atoi(value)
+
+	if err != nil || length < 0 {
+		return "", ErrMalformedRequest
+	}
+
+	if length > MAX_BODY_SIZE {
+		return "", ErrBodyTooLarge
+	}
+
+	body := make([]byte, length)
+
+	if _, err := io.ReadFull(reader, body); err != nil {
+		return "", err
+	}
+
+	return string(body), nil
 }
 
 // parseHeaders reads header lines from reader up to the blank line that ends them.
