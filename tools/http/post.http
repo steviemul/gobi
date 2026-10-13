@@ -1,0 +1,17 @@
+### Create a user
+# @name createUser
+POST {{host}}/api/users
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Test User",
+  "email": "test@example.com"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
