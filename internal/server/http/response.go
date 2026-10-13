@@ -1,4 +1,4 @@
-package server
+package http
 
 import (
 	"fmt"
@@ -12,7 +12,8 @@ type GobiResponse struct {
 	headers map[string]string
 }
 
-func (gr *GobiResponse) toString() string {
+// String renders the response in HTTP/1.x wire format.
+func (gr *GobiResponse) String() string {
 
 	response := fmt.Sprintf("HTTP/%s %s\r\n", gr.version, gr.status)
 

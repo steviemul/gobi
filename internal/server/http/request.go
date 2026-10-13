@@ -1,4 +1,4 @@
-package server
+package http
 
 import (
 	"bufio"
@@ -24,6 +24,17 @@ type GobiRequest struct {
 	headers map[string]string
 }
 
+func (gr GobiRequest) Method() string { return gr.method }
+
+func (gr GobiRequest) Target() string { return gr.target }
+
+func (gr GobiRequest) Version() string { return gr.version }
+
+func (gr GobiRequest) Body() string { return gr.body }
+
+// Headers returns the request headers, keyed by lowercased name.
+func (gr GobiRequest) Headers() map[string]string { return gr.headers }
+
 // ParseRequest reads the request line and headers from reader. Header names are lowercased.
 // It returns ErrMalformedRequest if the request line or a header is not well formed.
 func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
@@ -38,6 +49,10 @@ func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
 
 	if len(parts) != 3 {
 		return GobiRequest{}, ErrMalformedRequest
+	}
+
+	if !IsSupportedMethod(parts[0]) {
+		return GobiRequest{}, errors.New("invalid request method " + parts[0])
 	}
 
 	headers, err := parseHeaders(reader)
@@ -71,9 +86,9 @@ func parseBody(reader *bufio.Reader, headers map[string]string) (string, error) 
 		return "", nil
 	}
 
-	length, err := strconv.Atoi(value)
+	length, err := strconv.ParseUint(value, 10, 64)
 
-	if err != nil || length < 0 {
+	if err != nil {
 		return "", ErrMalformedRequest
 	}
 

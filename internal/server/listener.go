@@ -6,6 +6,8 @@ import (
 	"io"
 	"log"
 	"net"
+
+	"github.com/steviemul/gobi/internal/server/http"
 )
 
 type GobiListener struct {
@@ -48,14 +50,14 @@ func handleConnection(conn net.Conn) {
 
 	reader := bufio.NewReader(conn)
 
-	request, err := ParseRequest(reader)
+	request, err := http.ParseRequest(reader)
 
-	if errors.Is(err, ErrMalformedRequest) {
-		writeResponse(conn, "400 Bad Request", "Malformed request\n")
+	if errors.Is(err, http.ErrMalformedRequest) {
+		writeResponse(conn, "400 Bad Request", "Malformed request\n\n"+err.Error()+"\n")
 		return
 	}
 
-	if errors.Is(err, ErrBodyTooLarge) {
+	if errors.Is(err, http.ErrBodyTooLarge) {
 		writeResponse(conn, "413 Content Too Large", "Request body too large\n")
 		return
 	}
@@ -65,16 +67,16 @@ func handleConnection(conn net.Conn) {
 		return
 	}
 
-	log.Println("Parsed request:", request.method, request.target, request.version, request.headers, request.body)
+	log.Println("Parsed request:", request.Method(), request.Target(), request.Version(), request.Headers(), request.Body())
 
 	writeResponse(conn, "200 OK", "Hello from my Go server!\n")
 }
 
 func writeResponse(conn net.Conn, status string, body string) {
 
-	response, _ := BuildResponse("1.1", status, body)
+	response, _ := http.BuildResponse("1.1", status, body)
 
-	if _, err := io.WriteString(conn, response.toString()); err != nil {
+	if _, err := io.WriteString(conn, response.String()); err != nil {
 		log.Println("Failed to write response", err)
 	}
 }

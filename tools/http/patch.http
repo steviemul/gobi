@@ -1,0 +1,12 @@
+### Get a list of users
+# @name getUsers
+PATCH {{host}}/api/users?page=2
+Accept: application/json
+Authorization: Bearer {{auth_token}}
+
+> {%
+    // You can write basic JavaScript assertions directly in the file
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
