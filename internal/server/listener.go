@@ -3,7 +3,6 @@ package server
 import (
 	"bufio"
 	"errors"
-	"io"
 	"log"
 	"net"
 
@@ -81,7 +80,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func writeResponse(conn net.Conn, response *http.GobiResponse) {
-	if _, err := io.WriteString(conn, response.String()); err != nil {
+	if _, err := conn.Write(response.Bytes()); err != nil {
 		log.Println("Failed to write response", err)
 	}
 }

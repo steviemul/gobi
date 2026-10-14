@@ -1,6 +1,7 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 )
@@ -8,22 +9,32 @@ import (
 type GobiResponse struct {
 	status  string
 	version string
-	body    string
+	body    []byte
 	headers map[string]string
 }
 
-// String renders the response in HTTP/1.x wire format.
-func (gr *GobiResponse) String() string {
+// Bytes renders the response in HTTP/1.x wire format. The body is appended
+// as raw bytes, so binary content is preserved.
+func (gr *GobiResponse) Bytes() []byte {
 
-	response := fmt.Sprintf("HTTP/%s %s\r\n", gr.version, gr.status)
+	var buf bytes.Buffer
+
+	fmt.Fprintf(&buf, "HTTP/%s %s\r\n", gr.version, gr.status)
 
 	for name, value := range gr.headers {
-		response = response + fmt.Sprintf("%s: %s\r\n", name, value)
+		fmt.Fprintf(&buf, "%s: %s\r\n", name, value)
 	}
 
-	response = response + fmt.Sprintf("\r\n%s", gr.body)
+	buf.WriteString("\r\n")
+	buf.Write(gr.body)
 
-	return response
+	return buf.Bytes()
+}
+
+// String renders the response as a string. Intended for logging and tests;
+// use Bytes when writing to a connection.
+func (gr *GobiResponse) String() string {
+	return string(gr.Bytes())
 }
 
 func BuildResponse(version string, status string, body string) (GobiResponse, error) {
@@ -44,6 +55,6 @@ func BuildContentResponse(version string, status string, contentType string, bod
 		version: version,
 		status:  status,
 		headers: headers,
-		body:    body,
+		body:    []byte(body),
 	}, nil
 }
