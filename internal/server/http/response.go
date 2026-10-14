@@ -37,8 +37,11 @@ func (gr *GobiResponse) String() string {
 	return string(gr.Bytes())
 }
 
-func BuildResponse(version string, status string, body string) (GobiResponse, error) {
+func (gr *GobiResponse) SetHeader(name string, value string) {
+	gr.headers[name] = value
+}
 
+func BuildResponse(version string, status string, body string) (GobiResponse, error) {
 	return BuildContentResponse(version, status, "text/plain; charset=utf-8", body)
 }
 
@@ -49,7 +52,6 @@ func BuildContentResponse(version string, status string, contentType string, bod
 
 	headers["Content-Type"] = contentType
 	headers["Content-Length"] = strconv.Itoa(len(body))
-	headers["Connection"] = "close"
 
 	return GobiResponse{
 		version: version,
