@@ -1,23 +1,32 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
+	"github.com/steviemul/gobi/internal/config"
 	"github.com/steviemul/gobi/internal/server"
 )
 
 func main() {
 
-	const port = "8080"
+	configPath := flag.String("config", "", "optional path to a YAML config file")
+	flag.Parse()
 
-	listener := &server.GobiListener{}
+	config, err := config.BuildConfig(*configPath)
 
-	if err := listener.Listen(port); err != nil {
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Server listening on port %s, Ctrl+c to exit\n", port)
+	listener := &server.GobiListener{}
+
+	if err := listener.Listen(config); err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Server listening on port %s, Ctrl+c to exit\n", config.Port())
 
 	if err := listener.Serve(); err != nil {
 		log.Fatal(err)

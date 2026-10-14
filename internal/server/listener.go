@@ -9,24 +9,27 @@ import (
 	"strings"
 	"time"
 
+	"github.com/steviemul/gobi/internal/config"
 	"github.com/steviemul/gobi/internal/server/handler"
 	"github.com/steviemul/gobi/internal/server/http"
 )
 
 type GobiListener struct {
 	listener net.Listener
+	config   config.GobiConfig
 }
 
 // Listen binds the port and returns once the listener is ready to accept connections.
-func (sl *GobiListener) Listen(port string) error {
+func (sl *GobiListener) Listen(config config.GobiConfig) error {
 
-	listener, err := net.Listen("tcp", ":"+port)
+	listener, err := net.Listen("tcp", ":"+config.Port())
 
 	if err != nil {
 		return err
 	}
 
 	sl.listener = listener
+	sl.config = config
 
 	return nil
 }
