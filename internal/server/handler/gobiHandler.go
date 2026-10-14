@@ -38,7 +38,7 @@ func (eh GobiRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiRespons
 				contentType = "application/octet-stream"
 			}
 
-			response, _ := http.BuildContentResponse("1.1", "200 OK", contentType, string(data))
+			response, _ := http.BuildContentResponse("1.1", "200 OK", contentType, data)
 
 			return response
 		}

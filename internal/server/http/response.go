@@ -42,11 +42,11 @@ func (gr *GobiResponse) SetHeader(name string, value string) {
 }
 
 func BuildResponse(version string, status string, body string) (GobiResponse, error) {
-	return BuildContentResponse(version, status, "text/plain; charset=utf-8", body)
+	return BuildContentResponse(version, status, "text/plain; charset=utf-8", []byte(body))
 }
 
 // BuildContentResponse is BuildResponse with an explicit Content-Type.
-func BuildContentResponse(version string, status string, contentType string, body string) (GobiResponse, error) {
+func BuildContentResponse(version string, status string, contentType string, body []byte) (GobiResponse, error) {
 
 	headers := make(map[string]string)
 
@@ -57,6 +57,6 @@ func BuildContentResponse(version string, status string, contentType string, bod
 		version: version,
 		status:  status,
 		headers: headers,
-		body:    []byte(body),
+		body:    body,
 	}, nil
 }
