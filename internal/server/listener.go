@@ -51,17 +51,11 @@ func (sl *GobiListener) Serve() error {
 			continue
 		}
 
-		go handleConnection(conn)
+		go handleConnection(conn, sl.config)
 	}
 }
 
-const (
-	idleTimeout  = 60 * time.Second // max wait between requests
-	readTimeout  = 10 * time.Second // max time to receive one request
-	writeTimeout = 10 * time.Second
-)
-
-func handleConnection(conn net.Conn) {
+func handleConnection(conn net.Conn, config config.GobiConfig) {
 	defer conn.Close()
 
 	reader := bufio.NewReader(conn)
@@ -71,13 +65,13 @@ func handleConnection(conn net.Conn) {
 		// Wait for the first byte of the next request. This returns immediately
 		// if a pipelined request is already buffered, and fails cleanly on EOF
 		// or idle timeout, so neither becomes a 400.
-		conn.SetReadDeadline(time.Now().Add(idleTimeout))
+		conn.SetReadDeadline(time.Now().Add(config.IdleTimeout()))
 		if _, err := reader.Peek(1); err != nil {
 			return
 		}
 
 		// A request has started, so it must arrive promptly.
-		conn.SetReadDeadline(time.Now().Add(readTimeout))
+		conn.SetReadDeadline(time.Now().Add(config.ReadTimeout()))
 
 		request, err := http.ParseRequest(reader)
 		if err != nil {
@@ -90,7 +84,7 @@ func handleConnection(conn net.Conn) {
 			}
 			resp := errorResponse(err)
 			resp.SetHeader("Connection", "close")
-			writeResponse(conn, writer, &resp)
+			writeResponse(conn, writer, &resp, config)
 			return
 		}
 
@@ -106,7 +100,7 @@ func handleConnection(conn net.Conn) {
 			resp.SetHeader("Connection", "keep-alive")
 		}
 
-		if err := writeResponse(conn, writer, &resp); err != nil || !keepAlive {
+		if err := writeResponse(conn, writer, &resp, config); err != nil || !keepAlive {
 			return
 		}
 	}
@@ -137,8 +131,8 @@ func errorResponse(err error) http.GobiResponse {
 	return resp
 }
 
-func writeResponse(conn net.Conn, w *bufio.Writer, resp *http.GobiResponse) error {
-	conn.SetWriteDeadline(time.Now().Add(writeTimeout))
+func writeResponse(conn net.Conn, w *bufio.Writer, resp *http.GobiResponse, config config.GobiConfig) error {
+	conn.SetWriteDeadline(time.Now().Add(config.WriteTimeout()))
 	if _, err := w.Write(resp.Bytes()); err != nil {
 		return err
 	}
