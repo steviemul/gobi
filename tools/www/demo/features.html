@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Features | gobi</title>
+    <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css?v=2">
+  </head>
+  <body>
+    <header class="site">
+      <a class="brand" href="index.html"><img src="img/logo.svg" alt="gobi logo">gobi</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="architecture.html">Architecture</a>
+        <a href="features.html" aria-current="page">Features</a>
+      </nav>
+      <button id="theme-toggle" type="button">Theme</button>
+    </header>
+    <main>
+      <h1>Features</h1>
+      <p class="lead">What works today, and what&rsquo;s still to come.</p>
+
+      <h2>Working</h2>
+      <table>
+        <tbody>
+          <tr><td class="status-done">HTTP/1.0 and HTTP/1.1 request parsing</td><td>400 and 413 for bad input</td></tr>
+          <tr><td class="status-done">Keep-alive and pipelining</td><td>Idle, read and write timeouts</td></tr>
+          <tr><td class="status-done">Static file serving</td><td>Content type from the file extension</td></tr>
+          <tr><td class="status-done">Virtual hosts</td><td>Matched on the <code>Host</code> header</td></tr>
+          <tr><td class="status-done">TLS</td><td>Plus a <code>302</code> redirect from HTTP when forced</td></tr>
+          <tr><td class="status-done">Status page</td><td>Built in, can be switched off</td></tr>
+        </tbody>
+      </table>
+
+      <h2>Planned</h2>
+      <table>
+        <tbody>
+          <tr><td class="status-planned">Reverse proxy</td><td>Routes with a <code>proxy</code></td></tr>
+          <tr><td class="status-planned">Directory redirects</td><td><code>/demo</code> to <code>/demo/</code></td></tr>
+          <tr><td class="status-planned">Caching headers</td><td><code>ETag</code> and <code>Last-Modified</code></td></tr>
+        </tbody>
+      </table>
+
+      <h2>Try it</h2>
+<pre>make certs
+make build
+./bin/gobi -config tools/config/demo.yaml</pre>
+      <p>Then open <a href="index.html">the home page</a> over HTTP or HTTPS.</p>
+    </main>
+    <footer>
+      gobi is a learning project &middot;
+      <a href="https://go.dev/">Go</a> &middot;
+      <a href="https://datatracker.ietf.org/doc/html/rfc9112">RFC 9112</a> &middot;
+      <a href="missing.html">a link that 404s on purpose</a>
+    </footer>
+    <script src="js/app.js"></script>
+  </body>
+</html>

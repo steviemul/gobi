@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="gobi logo">
+  <rect width="64" height="64" rx="14" fill="#c8893a"/>
+  <path d="M0 46 Q16 30 32 42 T64 38 V64 H0 Z" fill="#a9692a"/>
+  <path d="M0 54 Q18 42 34 50 T64 48 V64 H0 Z" fill="#8a5220"/>
+  <circle cx="46" cy="18" r="7" fill="#f6e7c1"/>
+  <text x="32" y="38" font-family="Georgia, serif" font-size="26" font-weight="bold" fill="#fff" text-anchor="middle">g</text>
+</svg>

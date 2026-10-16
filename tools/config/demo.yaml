@@ -10,8 +10,8 @@ tls:
   cert: tools/certs/gobi.pem
   force: true
 routes:
-  - path: /static
-    root: tools/www/static
-  - path: /static
+  - path: /demo
+    root: tools/www/demo
+  - path: /demo
     host: gobi.local
-    root: tools/www/static
+    root: tools/www/demo

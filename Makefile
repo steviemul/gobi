@@ -12,8 +12,9 @@ IJHTTP := ijhttp --env-file $(HTTP_DIR)/http-client.env.json -e $(HTTP_ENV)
 CERT_HOSTS ?= localhost gobi.local
 CERT_NAME := gobi
 CERT_DIR := tools/certs
+DEMO_CONFIG := tools/config/demo.yaml
 
-.PHONY: build clean lint fmt certs http-get http-patch http-post
+.PHONY: build clean lint fmt certs demo http-get http-patch http-post
 
 # Requires golangci-lint v2 (https://golangci-lint.run/welcome/install/).
 lint:
@@ -32,6 +33,14 @@ certs:
 	mkcert -install
 	mkdir -p $(CERT_DIR)
 	mkcert -cert-file $(CERT_DIR)/$(CERT_NAME).pem -key-file $(CERT_DIR)/$(CERT_NAME)-key.pem $(CERT_HOSTS)
+
+# Builds and runs the server with the demo site; generates the certs first if they're missing.
+# Then browse to https://localhost:8443/demo/.
+demo: build $(CERT_DIR)/$(CERT_NAME).pem
+	./$(BIN_DIR)/$(BINARY) -config $(DEMO_CONFIG)
+
+$(CERT_DIR)/$(CERT_NAME).pem:
+	$(MAKE) certs
 
 clean:
 	rm -rf $(BIN_DIR)

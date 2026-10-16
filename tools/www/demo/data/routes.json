@@ -1,0 +1,6 @@
+[
+  { "match": "path /static", "action": "root", "target": "tools/www/static", "note": "Serves files from a directory" },
+  { "match": "path /demo", "action": "root", "target": "tools/www/demo", "note": "This site" },
+  { "match": "host gobi.local, path /demo", "action": "root", "target": "tools/www/demo", "note": "Same site on a virtual host" },
+  { "match": "path /backend", "action": "proxy", "target": "http://backend.local", "note": "Reverse proxy (planned)" }
+]

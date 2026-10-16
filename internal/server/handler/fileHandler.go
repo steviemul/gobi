@@ -18,6 +18,13 @@ type FileRequestHandler struct {
 }
 
 func (eh FileRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiResponse {
+	// "/demo" must become "/demo/" so the page's relative URLs resolve inside the route.
+	if location, ok := directoryRedirect(eh.path, r.Target()); ok {
+		response, _ := http.BuildRedirectResponse("1.1", "301 Moved Permanently", location)
+
+		return response
+	}
+
 	resource, _ := pathResource(eh.path, r.Target())
 
 	// fs.ValidPath rejects "..", empty and rooted names, so the lookup can't escape gobiRoot.
@@ -70,6 +77,29 @@ func hostname(hostport string) string {
 	}
 
 	return h
+}
+
+// directoryRedirect reports the trailing-slash form of target when it is exactly the
+// route path with no trailing slash. The query string, if any, is kept.
+func directoryRedirect(routePath string, target string) (location string, ok bool) {
+	if routePath == "" || strings.HasSuffix(routePath, "/") {
+		return "", false
+	}
+
+	target, _, _ = strings.Cut(target, "#")
+	pathPart, query, hasQuery := strings.Cut(target, "?")
+
+	if pathPart != routePath {
+		return "", false
+	}
+
+	location = routePath + "/"
+
+	if hasQuery {
+		location += "?" + query
+	}
+
+	return location, true
 }
 
 func pathResource(path string, target string) (resource string, ok bool) {

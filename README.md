@@ -28,8 +28,8 @@ Besides Go, you need:
 
 | Tool | Needed for | Install |
 |---|---|---|
-| [`golangci-lint`](https://golangci-lint.run) v2 | `make build`, `make lint` and `make fmt` (linting and formatting, configured in `.golangci.yml`) | `brew install golangci-lint`, or see the [install docs](https://golangci-lint.run/welcome/install/) |
-| [`mkcert`](https://github.com/FiloSottile/mkcert) | `make certs` (generates one locally-trusted TLS certificate for `localhost` and `gobi.local`, written to `tools/certs`) | `brew install mkcert`, or see the [install docs](https://github.com/FiloSottile/mkcert#installation) |
+| [`golangci-lint`](https://golangci-lint.run) v2 | `make build`, `make demo`, `make lint` and `make fmt` (linting and formatting, configured in `.golangci.yml`) | `brew install golangci-lint`, or see the [install docs](https://golangci-lint.run/welcome/install/) |
+| [`mkcert`](https://github.com/FiloSottile/mkcert) | `make certs` and `make demo` (generates one locally-trusted TLS certificate for `localhost` and `gobi.local`, written to `tools/certs`) | `brew install mkcert`, or see the [install docs](https://github.com/FiloSottile/mkcert#installation) |
 | [`ijhttp`](https://www.jetbrains.com/help/idea/http-client-cli.html) | `make http-get`, `make http-post` and `make http-patch` (optional, only to send the sample requests) | See the [JetBrains HTTP Client CLI docs](https://www.jetbrains.com/help/idea/http-client-cli.html) |
 
 ## Getting started
@@ -39,6 +39,8 @@ make build                              # builds bin/gobi
 ./bin/gobi                              # run with default config (port 8080)
 ./bin/gobi -config tools/config/default.yaml
 ```
+
+`make demo` builds the server and runs it with `tools/config/demo.yaml`, which serves a small multi-page site from `tools/www/demo`. It runs `make certs` first if the certificates don't exist, then open <https://localhost:8443/demo/>.
 
 `make http-get`, `make http-post` and `make http-patch` send sample requests to a running server using JetBrains' `ijhttp` client. The requests live in `tools/http`.
 

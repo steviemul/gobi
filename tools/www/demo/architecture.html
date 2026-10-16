@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Architecture | gobi</title>
+    <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="css/style.css?v=2">
+  </head>
+  <body>
+    <header class="site">
+      <a class="brand" href="index.html"><img src="img/logo.svg" alt="gobi logo">gobi</a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="architecture.html" aria-current="page">Architecture</a>
+        <a href="features.html">Features</a>
+      </nav>
+      <button id="theme-toggle" type="button">Theme</button>
+    </header>
+    <main>
+      <h1>Architecture</h1>
+      <p class="lead">From socket to response in five steps.</p>
+
+      <img class="diagram" src="img/diagram.png" alt="Five boxes joined by arrows showing the request flow" width="900" height="160">
+      <ul class="legend">
+        <li style="--swatch:#4285f4">Listener</li>
+        <li style="--swatch:#34a853">Parser</li>
+        <li style="--swatch:#fbbc05">Dispatcher</li>
+        <li style="--swatch:#ea4335">Handler</li>
+        <li style="--swatch:#673ab7">Response writer</li>
+      </ul>
+
+      <ol>
+        <li>The <strong>listener</strong> accepts a TCP (or TLS) connection and starts a goroutine for it.</li>
+        <li>The <strong>parser</strong> reads the request line, headers and body, rejecting malformed or oversized requests.</li>
+        <li>The <strong>dispatcher</strong> walks the configured routes in order and picks the first handler that matches.</li>
+        <li>The <strong>handler</strong> serves a file, proxies to a backend or renders the status page.</li>
+        <li>The <strong>response writer</strong> sends the bytes, then either waits for the next request or closes.</li>
+      </ol>
+
+      <h2>Routes</h2>
+      <p>This table was loaded by <code>js/app.js</code> from <code>data/routes.json</code> after the page rendered.</p>
+      <table id="routes-table">
+        <thead><tr><th>Match</th><th>Action</th><th>Target</th><th>Note</th></tr></thead>
+        <tbody></tbody>
+      </table>
+
+      <h2>Latency</h2>
+      <p>Fetches a small file ten times, skipping the browser cache, over the same keep-alive connection when possible.</p>
+      <button id="ping" type="button">Ping server</button>
+      <div id="ping-result" class="ping-result"></div>
+    </main>
+    <footer>
+      gobi is a learning project &middot;
+      <a href="https://go.dev/">Go</a> &middot;
+      <a href="https://datatracker.ietf.org/doc/html/rfc9112">RFC 9112</a> &middot;
+      <a href="missing.html">a link that 404s on purpose</a>
+    </footer>
+    <script src="js/app.js"></script>
+  </body>
+</html>
