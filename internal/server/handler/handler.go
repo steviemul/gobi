@@ -32,6 +32,14 @@ func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 				host: route.Host,
 			})
 		}
+
+		if route.Proxy != "" {
+			handlers = append(handlers, ProxyRequestHandler{
+				proxy: route.Proxy,
+				path:  route.Path,
+				host:  route.Host,
+			})
+		}
 	}
 
 	if config.Status() {

@@ -29,6 +29,7 @@ Besides Go, you need:
 | Tool | Needed for | Install |
 |---|---|---|
 | [`golangci-lint`](https://golangci-lint.run) v2 | `make build`, `make lint` and `make fmt` (linting and formatting, configured in `.golangci.yml`) | `brew install golangci-lint`, or see the [install docs](https://golangci-lint.run/welcome/install/) |
+| [`mkcert`](https://github.com/FiloSottile/mkcert) | `make certs` (generates locally-trusted TLS certificates for development, default host `gobi.local`, written to `tools/certs`) | `brew install mkcert`, or see the [install docs](https://github.com/FiloSottile/mkcert#installation) |
 | [`ijhttp`](https://www.jetbrains.com/help/idea/http-client-cli.html) | `make http-get`, `make http-post` and `make http-patch` (optional, only to send the sample requests) | See the [JetBrains HTTP Client CLI docs](https://www.jetbrains.com/help/idea/http-client-cli.html) |
 
 ## Getting started
