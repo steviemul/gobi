@@ -60,6 +60,10 @@ func (gc *GobiConfig) Port() string {
 	return gc.port
 }
 
+func (gc *GobiConfig) TLS() TLS {
+	return gc.tls
+}
+
 func (gc *GobiConfig) Status() bool {
 	return gc.status
 }

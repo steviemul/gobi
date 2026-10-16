@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"crypto/tls"
 	"errors"
 	"io"
 	"log"
@@ -23,6 +24,29 @@ type GobiListener struct {
 	requestDispatcher handler.RequestDispatcher
 }
 
+func createTLSListener(config config.GobiConfig) net.Listener {
+	tcpListener, err := net.Listen("tcp", ":"+config.TLS().Port)
+	if err != nil {
+		log.Printf("error creating tls listener - %s", err.Error())
+		return nil
+	}
+
+	cert, err := tls.LoadX509KeyPair(
+		config.TLS().Cert,
+		config.TLS().Key,
+	)
+	if err != nil {
+		log.Printf("error reading certificates - %s", err.Error())
+		return nil
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+
+	return tls.NewListener(tcpListener, tlsConfig)
+}
+
 // Listen binds the port and returns once the listener is ready to accept connections.
 func (sl *GobiListener) Listen(config config.GobiConfig) error {
 	listener, err := net.Listen(ProtocolTCP, ":"+config.Port())
@@ -31,6 +55,11 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 	}
 
 	sl.listeners = append(sl.listeners, listener)
+
+	if config.TLS().Enabled {
+		sl.listeners = append(sl.listeners, createTLSListener(config))
+	}
+
 	sl.config = config
 	sl.requestDispatcher = handler.BuildRequestDispatcher(config)
 
@@ -105,6 +134,7 @@ func (sl *GobiListener) handleConnection(conn net.Conn) {
 		}
 
 		request, err := http.ParseRequest(reader)
+
 		if err != nil {
 
 			var ne net.Error
