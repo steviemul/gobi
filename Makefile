@@ -9,7 +9,8 @@ HTTP_DIR := tools/http
 HTTP_ENV := development
 IJHTTP := ijhttp --env-file $(HTTP_DIR)/http-client.env.json -e $(HTTP_ENV)
 
-CERT_HOST ?= gobi.local
+CERT_HOSTS ?= localhost gobi.local
+CERT_NAME := gobi
 CERT_DIR := tools/certs
 
 .PHONY: build clean lint fmt certs http-get http-patch http-post
@@ -24,12 +25,13 @@ fmt:
 build: lint
 	go build -o $(BIN_DIR)/$(BINARY) $(MAIN_PKG)
 
-# Requires mkcert (https://github.com/FiloSottile/mkcert). Override the host with
-# `make certs CERT_HOST=other.local`. Output goes to tools/certs/<host>.pem and <host>-key.pem.
+# Requires mkcert (https://github.com/FiloSottile/mkcert). One certificate covers every host
+# in CERT_HOSTS; override with `make certs CERT_HOSTS="localhost other.local"`.
+# Output goes to tools/certs/gobi.pem and gobi-key.pem.
 certs:
 	mkcert -install
 	mkdir -p $(CERT_DIR)
-	mkcert -cert-file $(CERT_DIR)/$(CERT_HOST).pem -key-file $(CERT_DIR)/$(CERT_HOST)-key.pem $(CERT_HOST)
+	mkcert -cert-file $(CERT_DIR)/$(CERT_NAME).pem -key-file $(CERT_DIR)/$(CERT_NAME)-key.pem $(CERT_HOSTS)
 
 clean:
 	rm -rf $(BIN_DIR)

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	DefaultPort                = "8080"
+	DefaultHTTPPort            = "8080"
 	DefaultIdleTimeoutSeconds  = 60
 	DefaultReadTimeoutSeconds  = 10
 	DefaultWriteTimeoutSeconds = 10
@@ -19,10 +19,19 @@ const (
 type GobiConfig struct {
 	port         string
 	status       bool
+	tls          TLS
 	idleTimeout  time.Duration
 	readTimeout  time.Duration
 	writeTimeout time.Duration
 	routes       []Route
+}
+
+type TLS struct {
+	Enabled bool   `yaml:"enabled"`
+	Port    string `yaml:"port"`
+	Cert    string `yaml:"cert"`
+	Key     string `yaml:"key"`
+	Force   bool   `yaml:"force"`
 }
 
 // Route describes how to handle a request. Host and Path are the match
@@ -40,6 +49,7 @@ type Route struct {
 type fileConfig struct {
 	Port                string  `yaml:"port"`
 	Status              *bool   `yaml:"status"`
+	TLS                 *TLS    `yaml:"tls"`
 	IdleTimeoutSeconds  int     `yaml:"idleTimeoutSeconds"`
 	ReadTimeoutSeconds  int     `yaml:"readTimeoutSeconds"`
 	WriteTimeoutSeconds int     `yaml:"writeTimeoutSeconds"`
@@ -107,6 +117,10 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 		config.status = *fc.Status
 	}
 
+	if fc.TLS != nil {
+		config.tls = *fc.TLS
+	}
+
 	if fc.IdleTimeoutSeconds > 0 {
 		config.idleTimeout = time.Duration(fc.IdleTimeoutSeconds) * time.Second
 	}
@@ -128,8 +142,9 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 
 func DefaultConfig() GobiConfig {
 	return GobiConfig{
-		port:         DefaultPort,
+		port:         DefaultHTTPPort,
 		status:       true,
+		tls:          TLS{Enabled: false},
 		idleTimeout:  DefaultIdleTimeoutSeconds * time.Second,
 		readTimeout:  DefaultReadTimeoutSeconds * time.Second,
 		writeTimeout: DefaultWriteTimeoutSeconds * time.Second,

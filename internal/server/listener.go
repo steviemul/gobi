@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/steviemul/gobi/internal/config"
@@ -17,7 +18,7 @@ import (
 const ProtocolTCP = "tcp"
 
 type GobiListener struct {
-	listener          net.Listener
+	listeners         []net.Listener
 	config            config.GobiConfig
 	requestDispatcher handler.RequestDispatcher
 }
@@ -29,19 +30,22 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 		return err
 	}
 
-	sl.listener = listener
+	sl.listeners = append(sl.listeners, listener)
 	sl.config = config
 	sl.requestDispatcher = handler.BuildRequestDispatcher(config)
 
 	return nil
 }
 
-// Serve accepts connections until the listener is closed. Call Listen first.
-func (sl *GobiListener) Serve() error {
-	defer func() { _ = sl.listener.Close() }()
+func (sl *GobiListener) Shutdown() {
+	for _, listener := range sl.listeners {
+		_ = listener.Close()
+	}
+}
 
+func (sl *GobiListener) poll(listener net.Listener) error {
 	for {
-		conn, err := sl.listener.Accept()
+		conn, err := listener.Accept()
 		if err != nil {
 
 			if errors.Is(err, net.ErrClosed) {
@@ -56,6 +60,23 @@ func (sl *GobiListener) Serve() error {
 
 		go sl.handleConnection(conn)
 	}
+}
+
+// Serve accepts connections until the listener is closed. Call Listen first.
+func (sl *GobiListener) Serve() {
+	defer sl.Shutdown()
+
+	var wg sync.WaitGroup
+
+	for _, listener := range sl.listeners {
+		wg.Add(1)
+		go func(l net.Listener) {
+			defer wg.Done()
+			_ = sl.poll(l)
+		}(listener)
+	}
+
+	wg.Wait()
 }
 
 func (sl *GobiListener) handleConnection(conn net.Conn) {
