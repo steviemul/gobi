@@ -1,4 +1,4 @@
-port: 8090
+port: 8080
 status: true
 idleTimeoutSeconds: 60
 readTimeoutSeconds: 10

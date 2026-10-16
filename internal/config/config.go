@@ -39,7 +39,7 @@ type Route struct {
 // keeps its default value.
 type fileConfig struct {
 	Port                string  `yaml:"port"`
-	Status              bool    `yaml:"status"`
+	Status              *bool   `yaml:"status"`
 	IdleTimeoutSeconds  int     `yaml:"idleTimeoutSeconds"`
 	ReadTimeoutSeconds  int     `yaml:"readTimeoutSeconds"`
 	WriteTimeoutSeconds int     `yaml:"writeTimeoutSeconds"`
@@ -48,6 +48,10 @@ type fileConfig struct {
 
 func (gc *GobiConfig) Port() string {
 	return gc.port
+}
+
+func (gc *GobiConfig) Status() bool {
+	return gc.status
 }
 
 // IdleTimeout is the max wait between requests on a keep-alive connection.
@@ -97,6 +101,10 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 
 	if fc.Port != "" {
 		config.port = fc.Port
+	}
+
+	if fc.Status != nil {
+		config.status = *fc.Status
 	}
 
 	if fc.IdleTimeoutSeconds > 0 {

@@ -7,11 +7,6 @@ import (
 	"github.com/steviemul/gobi/internal/server/http"
 )
 
-var handlers = []RequestHandler{
-	FileRequestHandler{},
-	GobiRequestHandler{},
-}
-
 var ErrNotFound = errors.New("resource not found")
 
 type RequestDispatcher struct {
@@ -19,7 +14,19 @@ type RequestDispatcher struct {
 	handlers []RequestHandler
 }
 
+func createRequestHandlers(config config.GobiConfig) []RequestHandler {
+	var handlers []RequestHandler
+
+	if config.Status() {
+		handlers = append(handlers, GobiRequestHandler{})
+	}
+
+	return handlers
+}
+
 func BuildRequestDispatcher(config config.GobiConfig) RequestDispatcher {
+	handlers := createRequestHandlers(config)
+
 	return RequestDispatcher{
 		config:   config,
 		handlers: handlers,
@@ -27,7 +34,7 @@ func BuildRequestDispatcher(config config.GobiConfig) RequestDispatcher {
 }
 
 func (rd RequestDispatcher) HandleRequest(r *http.GobiRequest) (http.GobiResponse, error) {
-	for _, handler := range handlers {
+	for _, handler := range rd.handlers {
 		if handler.CanProcess(r) {
 			return handler.HandleRequest(r), nil
 		}
