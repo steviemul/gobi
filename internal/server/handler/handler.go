@@ -18,10 +18,6 @@ type RequestDispatcher struct {
 func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 	var handlers []RequestHandler
 
-	if config.Status() {
-		handlers = append(handlers, GobiRequestHandler{})
-	}
-
 	for _, route := range config.Routes() {
 
 		if route.Root != "" && route.Proxy != "" {
@@ -36,6 +32,10 @@ func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 				host: route.Host,
 			})
 		}
+	}
+
+	if config.Status() {
+		handlers = append(handlers, GobiRequestHandler{})
 	}
 
 	return handlers

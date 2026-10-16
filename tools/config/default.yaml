@@ -9,4 +9,4 @@ routes:
   - path: /backend
     proxy: http://backend.local
   - host: gobi.local
-    root: tools/www/gobi
+    root: tools/www/vhost

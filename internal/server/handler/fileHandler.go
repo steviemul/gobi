@@ -3,6 +3,7 @@ package handler
 import (
 	"io/fs"
 	"mime"
+	"net"
 	"os"
 	"path"
 	"strings"
@@ -42,9 +43,33 @@ func (eh FileRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiRespons
 }
 
 func (eh FileRequestHandler) CanProcess(r *http.GobiRequest) bool {
+	if eh.host != "" {
+		if !matchesHost(eh.host, r) {
+			return false
+		}
+	}
+
 	_, ok := pathResource(eh.path, r.Target())
 
 	return ok
+}
+
+func matchesHost(host string, r *http.GobiRequest) bool {
+	hostHeader := r.Headers()["host"] // names are lowercased by the parser
+
+	return strings.EqualFold(host, hostname(hostHeader))
+}
+
+// hostname strips the optional port from a Host header value. net.SplitHostPort
+// is used rather than splitting on ":" so bracketed IPv6 literals like [::1]:8080 work.
+func hostname(hostport string) string {
+	h, _, err := net.SplitHostPort(hostport)
+	if err != nil {
+		// No port present (or malformed); use the value as-is.
+		return hostport
+	}
+
+	return h
 }
 
 func pathResource(path string, target string) (resource string, ok bool) {
