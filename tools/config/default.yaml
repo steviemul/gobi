@@ -4,8 +4,8 @@ idleTimeoutSeconds: 60
 readTimeoutSeconds: 10
 writeTimeoutSeconds: 10
 routes:
-  - path: /www
-    root: tools/www
+  - path: /static
+    root: tools/www/static
   - path: /backend
     proxy: http://backend.local
   - host: gobi.local

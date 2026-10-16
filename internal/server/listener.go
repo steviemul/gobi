@@ -14,20 +14,24 @@ import (
 	"github.com/steviemul/gobi/internal/server/http"
 )
 
+const ProtocolTCP = "tcp"
+
 type GobiListener struct {
-	listener net.Listener
-	config   config.GobiConfig
+	listener          net.Listener
+	config            config.GobiConfig
+	requestDispatcher handler.RequestDispatcher
 }
 
 // Listen binds the port and returns once the listener is ready to accept connections.
 func (sl *GobiListener) Listen(config config.GobiConfig) error {
-	listener, err := net.Listen("tcp", ":"+config.Port())
+	listener, err := net.Listen(ProtocolTCP, ":"+config.Port())
 	if err != nil {
 		return err
 	}
 
 	sl.listener = listener
 	sl.config = config
+	sl.requestDispatcher = handler.BuildRequestDispatcher(config)
 
 	return nil
 }
@@ -50,13 +54,14 @@ func (sl *GobiListener) Serve() error {
 			continue
 		}
 
-		go handleConnection(conn, sl.config)
+		go sl.handleConnection(conn)
 	}
 }
 
-func handleConnection(conn net.Conn, config config.GobiConfig) {
+func (sl *GobiListener) handleConnection(conn net.Conn) {
 	defer func() { _ = conn.Close() }()
 
+	config := sl.config
 	reader := bufio.NewReader(conn)
 	writer := bufio.NewWriter(conn)
 
@@ -100,7 +105,7 @@ func handleConnection(conn net.Conn, config config.GobiConfig) {
 			return
 		}
 
-		resp, err := handler.HandleRequest(&request)
+		resp, err := sl.requestDispatcher.HandleRequest(&request)
 		if err != nil {
 			resp = handlerErrorResponse(err)
 		}
