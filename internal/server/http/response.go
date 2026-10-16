@@ -16,7 +16,6 @@ type GobiResponse struct {
 // Bytes renders the response in HTTP/1.x wire format. The body is appended
 // as raw bytes, so binary content is preserved.
 func (gr *GobiResponse) Bytes() []byte {
-
 	var buf bytes.Buffer
 
 	fmt.Fprintf(&buf, "HTTP/%s %s\r\n", gr.version, gr.status)
@@ -47,7 +46,6 @@ func BuildResponse(version string, status string, body string) (GobiResponse, er
 
 // BuildContentResponse is BuildResponse with an explicit Content-Type.
 func BuildContentResponse(version string, status string, contentType string, body []byte) (GobiResponse, error) {
-
 	headers := make(map[string]string)
 
 	headers["Content-Type"] = contentType

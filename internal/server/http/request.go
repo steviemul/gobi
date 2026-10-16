@@ -9,12 +9,14 @@ import (
 )
 
 const (
-	CONTENT_LENGTH = "content-length" // header names are lowercased by parseHeaders
-	MAX_BODY_SIZE  = 1 << 20          // 1 MiB
+	ContentLength = "content-length" // header names are lowercased by parseHeaders
+	MaxBodySize   = 1 << 20          // 1 MiB
 )
 
-var ErrMalformedRequest = errors.New("malformed request")
-var ErrBodyTooLarge = errors.New("request body too large")
+var (
+	ErrMalformedRequest = errors.New("malformed request")
+	ErrBodyTooLarge     = errors.New("request body too large")
+)
 
 type GobiRequest struct {
 	method  string
@@ -38,9 +40,7 @@ func (gr GobiRequest) Headers() map[string]string { return gr.headers }
 // ParseRequest reads the request line and headers from reader. Header names are lowercased.
 // It returns ErrMalformedRequest if the request line or a header is not well formed.
 func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
-
 	requestLine, err := reader.ReadString('\n')
-
 	if err != nil {
 		return GobiRequest{}, err
 	}
@@ -56,13 +56,11 @@ func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
 	}
 
 	headers, err := parseHeaders(reader)
-
 	if err != nil {
 		return GobiRequest{}, err
 	}
 
 	body, err := parseBody(reader, headers)
-
 	if err != nil {
 		return GobiRequest{}, err
 	}
@@ -77,22 +75,20 @@ func ParseRequest(reader *bufio.Reader) (GobiRequest, error) {
 }
 
 // parseBody reads exactly Content-Length bytes from reader. A request without the header has no body.
-// It returns ErrMalformedRequest for an invalid length and ErrBodyTooLarge above MAX_BODY_SIZE.
+// It returns ErrMalformedRequest for an invalid length and ErrBodyTooLarge above MaxBodySize.
 func parseBody(reader *bufio.Reader, headers map[string]string) (string, error) {
-
-	value, ok := headers[CONTENT_LENGTH]
+	value, ok := headers[ContentLength]
 
 	if !ok {
 		return "", nil
 	}
 
 	length, err := strconv.ParseUint(value, 10, 64)
-
 	if err != nil {
 		return "", ErrMalformedRequest
 	}
 
-	if length > MAX_BODY_SIZE {
+	if length > MaxBodySize {
 		return "", ErrBodyTooLarge
 	}
 
@@ -108,12 +104,10 @@ func parseBody(reader *bufio.Reader, headers map[string]string) (string, error) 
 // parseHeaders reads header lines from reader up to the blank line that ends them.
 // Header names are lowercased. It returns ErrMalformedRequest if a line has no colon.
 func parseHeaders(reader *bufio.Reader) (map[string]string, error) {
-
 	headers := make(map[string]string)
 
 	for {
 		line, err := reader.ReadString('\n')
-
 		if err != nil {
 			return nil, err
 		}

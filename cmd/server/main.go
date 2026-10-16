@@ -10,12 +10,10 @@ import (
 )
 
 func main() {
-
 	configPath := flag.String("config", "", "optional path to a YAML config file")
 	flag.Parse()
 
 	config, err := config.BuildConfig(*configPath)
-
 	if err != nil {
 		log.Fatal(err)
 	}

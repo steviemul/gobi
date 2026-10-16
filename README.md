@@ -22,6 +22,15 @@ The config file already describes routes, but the handlers that act on them are 
 - **Reverse proxy**: a route with `proxy` forwards requests to another server
 - **Virtual hosts**: a route with `host` matches on the request's `Host` header
 
+## Tools
+
+Besides Go, you need:
+
+| Tool | Needed for | Install |
+|---|---|---|
+| [`golangci-lint`](https://golangci-lint.run) v2 | `make build`, `make lint` and `make fmt` (linting and formatting, configured in `.golangci.yml`) | `brew install golangci-lint`, or see the [install docs](https://golangci-lint.run/welcome/install/) |
+| [`ijhttp`](https://www.jetbrains.com/help/idea/http-client-cli.html) | `make http-get`, `make http-post` and `make http-patch` (optional, only to send the sample requests) | See the [JetBrains HTTP Client CLI docs](https://www.jetbrains.com/help/idea/http-client-cli.html) |
+
 ## Getting started
 
 ```sh

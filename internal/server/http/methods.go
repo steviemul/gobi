@@ -19,7 +19,6 @@ var supportedMethods = map[string]struct{}{
 }
 
 func IsSupportedMethod(method string) bool {
-
 	_, ok := supportedMethods[method]
 
 	return ok

@@ -21,9 +21,7 @@ type GobiListener struct {
 
 // Listen binds the port and returns once the listener is ready to accept connections.
 func (sl *GobiListener) Listen(config config.GobiConfig) error {
-
 	listener, err := net.Listen("tcp", ":"+config.Port())
-
 	if err != nil {
 		return err
 	}
@@ -36,18 +34,19 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 
 // Serve accepts connections until the listener is closed. Call Listen first.
 func (sl *GobiListener) Serve() error {
-
-	defer sl.listener.Close()
+	defer func() { _ = sl.listener.Close() }()
 
 	for {
 		conn, err := sl.listener.Accept()
-
 		if err != nil {
+
 			if errors.Is(err, net.ErrClosed) {
 				return nil
 			}
+
 			log.Println("accept:", err)
 			time.Sleep(50 * time.Millisecond)
+
 			continue
 		}
 
@@ -56,35 +55,48 @@ func (sl *GobiListener) Serve() error {
 }
 
 func handleConnection(conn net.Conn, config config.GobiConfig) {
-	defer conn.Close()
+	defer func() { _ = conn.Close() }()
 
 	reader := bufio.NewReader(conn)
 	writer := bufio.NewWriter(conn)
 
 	for {
+
 		// Wait for the first byte of the next request. This returns immediately
 		// if a pipelined request is already buffered, and fails cleanly on EOF
 		// or idle timeout, so neither becomes a 400.
-		conn.SetReadDeadline(time.Now().Add(config.IdleTimeout()))
+		if err := conn.SetReadDeadline(time.Now().Add(config.IdleTimeout())); err != nil {
+			return
+		}
+
 		if _, err := reader.Peek(1); err != nil {
 			return
 		}
 
 		// A request has started, so it must arrive promptly.
-		conn.SetReadDeadline(time.Now().Add(config.ReadTimeout()))
+		if err := conn.SetReadDeadline(time.Now().Add(config.ReadTimeout())); err != nil {
+			return
+		}
 
 		request, err := http.ParseRequest(reader)
 		if err != nil {
+
 			var ne net.Error
+
 			if errors.As(err, &ne) && ne.Timeout() {
 				return // slow client: just drop it
 			}
+
 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
 				return // client went away mid-request: nobody to reply to
 			}
+
 			resp := errorResponse(err)
+
 			resp.SetHeader("Connection", "close")
-			writeResponse(conn, writer, &resp, config)
+
+			_ = writeResponse(conn, writer, &resp, config) // closing anyway
+
 			return
 		}
 
@@ -94,6 +106,7 @@ func handleConnection(conn net.Conn, config config.GobiConfig) {
 		}
 
 		keepAlive := shouldKeepAlive(&request)
+
 		if !keepAlive {
 			resp.SetHeader("Connection", "close")
 		} else if request.Version() == "HTTP/1.0" {
@@ -106,33 +119,11 @@ func handleConnection(conn net.Conn, config config.GobiConfig) {
 	}
 }
 
-func handlerErrorResponse(err error) http.GobiResponse {
-	var resp http.GobiResponse
-	if errors.Is(err, handler.ErrNotFound) {
-		resp, _ = http.BuildResponse("1.1", "404 Not Found", "Not Found\n")
-	} else {
-		log.Println("handler:", err)
-		resp, _ = http.BuildResponse("1.1", "500 Internal Server Error", "Internal server error\n")
-	}
-	return resp
-}
-
-func errorResponse(err error) http.GobiResponse {
-	var resp http.GobiResponse
-	switch {
-	case errors.Is(err, http.ErrMalformedRequest):
-		resp, _ = http.BuildResponse("1.1", "400 Bad Request", "Malformed request\n\n"+err.Error()+"\n")
-	case errors.Is(err, http.ErrBodyTooLarge):
-		resp, _ = http.BuildResponse("1.1", "413 Content Too Large", "Request body too large\n")
-	default:
-		log.Println("failed to read request:", err)
-		resp, _ = http.BuildResponse("1.1", "500 Internal Server Error", "Internal server error\n")
-	}
-	return resp
-}
-
 func writeResponse(conn net.Conn, w *bufio.Writer, resp *http.GobiResponse, config config.GobiConfig) error {
-	conn.SetWriteDeadline(time.Now().Add(config.WriteTimeout()))
+	if err := conn.SetWriteDeadline(time.Now().Add(config.WriteTimeout())); err != nil {
+		return err
+	}
+
 	if _, err := w.Write(resp.Bytes()); err != nil {
 		return err
 	}

@@ -1,0 +1,19 @@
+version: "2"
+
+linters:
+  enable:
+    - revive
+    - staticcheck
+    - errcheck
+    - errorlint
+    - govet
+  exclusions:
+    rules:
+      # Doc comments on exported symbols and packages aren't required.
+      - linters: [revive]
+        text: "^(exported|package-comments):"
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports

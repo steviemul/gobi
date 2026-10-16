@@ -10,10 +10,10 @@ import (
 )
 
 const (
-	DEFAULT_PORT                  = "8080"
-	DEFAULT_IDLE_TIMEOUT_SECONDS  = 60
-	DEFAULT_READ_TIMEOUT_SECONDS  = 10
-	DEFAULT_WRITE_TIMEOUT_SECONDS = 10
+	DefaultPort                = "8080"
+	DefaultIdleTimeoutSeconds  = 60
+	DefaultReadTimeoutSeconds  = 10
+	DefaultWriteTimeoutSeconds = 10
 )
 
 type GobiConfig struct {
@@ -120,11 +120,11 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 
 func DefaultConfig() GobiConfig {
 	return GobiConfig{
-		port:         DEFAULT_PORT,
+		port:         DefaultPort,
 		status:       true,
-		idleTimeout:  DEFAULT_IDLE_TIMEOUT_SECONDS * time.Second,
-		readTimeout:  DEFAULT_READ_TIMEOUT_SECONDS * time.Second,
-		writeTimeout: DEFAULT_WRITE_TIMEOUT_SECONDS * time.Second,
+		idleTimeout:  DefaultIdleTimeoutSeconds * time.Second,
+		readTimeout:  DefaultReadTimeoutSeconds * time.Second,
+		writeTimeout: DefaultWriteTimeoutSeconds * time.Second,
 		routes:       []Route{},
 	}
 }

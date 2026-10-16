@@ -9,9 +9,16 @@ HTTP_DIR := tools/http
 HTTP_ENV := development
 IJHTTP := ijhttp --env-file $(HTTP_DIR)/http-client.env.json -e $(HTTP_ENV)
 
-.PHONY: build clean http-get http-post
+.PHONY: build clean lint fmt http-get http-patch http-post
 
-build:
+# Requires golangci-lint v2 (https://golangci-lint.run/welcome/install/).
+lint:
+	golangci-lint run ./...
+
+fmt:
+	golangci-lint fmt ./...
+
+build: lint
 	go build -o $(BIN_DIR)/$(BINARY) $(MAIN_PKG)
 
 clean:

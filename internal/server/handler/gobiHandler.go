@@ -20,11 +20,9 @@ const (
 
 var gobiWebContent = www.Content
 
-type GobiRequestHandler struct {
-}
+type GobiRequestHandler struct{}
 
 func (eh GobiRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiResponse {
-
 	resource, _ := gobiResource(r.Target())
 
 	// fs.ValidPath rejects "..", empty and rooted names, so the lookup can't escape gobiRoot.
@@ -50,7 +48,6 @@ func (eh GobiRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiRespons
 }
 
 func (eh GobiRequestHandler) CanProcess(r *http.GobiRequest) bool {
-
 	_, ok := gobiResource(r.Target())
 
 	return ok
@@ -59,7 +56,6 @@ func (eh GobiRequestHandler) CanProcess(r *http.GobiRequest) bool {
 // gobiResource maps a request target under /gobi to a file name within the embedded content.
 // ok is false if the target is not under /gobi. /gobi and /gobi/ map to index.html.
 func gobiResource(target string) (resource string, ok bool) {
-
 	target, _, _ = strings.Cut(target, "?")
 	target, _, _ = strings.Cut(target, "#")
 
