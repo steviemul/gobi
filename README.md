@@ -105,6 +105,10 @@ The redirect keeps the request's host, path and query, and swaps in the HTTPS po
 
 Once the server is running, try `curl https://localhost:8443/` or `https://gobi.local:8443/` (the latter needs both `127.0.0.1 gobi.local` and `::1 gobi.local` in `/etc/hosts`; with only the IPv4 line, macOS waits about 5 seconds for a multicast DNS answer for the IPv6 lookup).
 
+## Roadmap
+
+Ideas for what to build next are in [`docs/roadmap.md`](docs/roadmap.md).
+
 ## Project layout
 
 ```
@@ -113,5 +117,6 @@ internal/config/       YAML config loading and defaults
 internal/server/       TCP listener and connection handling
 internal/server/http/  request parsing and response building
 internal/server/handler/ request handlers
+docs/                  roadmap and other notes
 tools/                 sample config, HTTP requests, embedded static content, test client
 ```
