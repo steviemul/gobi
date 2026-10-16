@@ -1,5 +1,7 @@
 # gobi
 
+[![CI](https://github.com/steviemul/gobi/actions/workflows/ci.yml/badge.svg)](https://github.com/steviemul/gobi/actions/workflows/ci.yml)
+
 A small HTTP/1.1 web server written in Go, built from the TCP socket up as a learning project.
 
 ## Description
