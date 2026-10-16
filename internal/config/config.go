@@ -11,6 +11,7 @@ import (
 
 const (
 	DefaultHTTPPort            = "8080"
+	DefaultTLSPort             = "8443"
 	DefaultIdleTimeoutSeconds  = 60
 	DefaultReadTimeoutSeconds  = 10
 	DefaultWriteTimeoutSeconds = 10
@@ -123,6 +124,10 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 
 	if fc.TLS != nil {
 		config.tls = *fc.TLS
+
+		if config.tls.Port == "" {
+			config.tls.Port = DefaultTLSPort
+		}
 	}
 
 	if fc.IdleTimeoutSeconds > 0 {
@@ -148,7 +153,7 @@ func DefaultConfig() GobiConfig {
 	return GobiConfig{
 		port:         DefaultHTTPPort,
 		status:       true,
-		tls:          TLS{Enabled: false},
+		tls:          TLS{Enabled: false, Port: DefaultTLSPort},
 		idleTimeout:  DefaultIdleTimeoutSeconds * time.Second,
 		readTimeout:  DefaultReadTimeoutSeconds * time.Second,
 		writeTimeout: DefaultWriteTimeoutSeconds * time.Second,

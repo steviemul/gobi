@@ -52,6 +52,11 @@ status: true
 idleTimeoutSeconds: 60   # max wait between requests on a keep-alive connection
 readTimeoutSeconds: 10   # max time to receive one request
 writeTimeoutSeconds: 10  # max time to send one response
+tls:                     # optional, see TLS below
+  enabled: true
+  port: 8443
+  cert: tools/certs/gobi.pem
+  key: tools/certs/gobi-key.pem
 routes:                  # evaluated in the order listed
   - path: /www
     root: tools/www
@@ -67,9 +72,36 @@ routes:                  # evaluated in the order listed
 | `idleTimeoutSeconds` | `60` | Keep-alive idle timeout |
 | `readTimeoutSeconds` | `10` | Time allowed to receive a request |
 | `writeTimeoutSeconds` | `10` | Time allowed to send a response |
+| `tls` | disabled | HTTPS listener settings, see [TLS](#tls) |
 | `routes` | none | Match rules (`host`, `path`) and an action (`root` or `proxy`) |
 
 See [`tools/config/default.yaml`](tools/config/default.yaml) for a full example.
+
+### TLS
+
+TLS is off by default. When enabled, gobi listens for HTTPS on its own port in addition to the plain HTTP port.
+
+**Before enabling it, run `make certs`.** This uses [`mkcert`](https://github.com/FiloSottile/mkcert) to create a locally-trusted certificate for `localhost` and `gobi.local`, and writes `tools/certs/gobi.pem` and `tools/certs/gobi-key.pem`. If the files named in `cert` and `key` can't be read, the HTTPS listener is not started and an error is logged. The certs are git-ignored, so each checkout needs to generate its own.
+
+```yaml
+tls:
+  enabled: true
+  port: 8443
+  cert: tools/certs/gobi.pem
+  key: tools/certs/gobi-key.pem
+```
+
+| Key | Default | Meaning |
+|---|---|---|
+| `enabled` | `false` | Start the HTTPS listener |
+| `port` | `8443` | TCP port for HTTPS |
+| `cert` | none | Path to the PEM certificate |
+| `key` | none | Path to the PEM private key |
+| `force` | `false` | When `true`, the plain HTTP listener answers every request with a `302` redirect to the same path on HTTPS. The server refuses to start if the TLS listener can't start |
+
+The redirect keeps the request's host, path and query, and swaps in the HTTPS port. A request with no `Host` header can't be redirected and gets a `400`.
+
+Once the server is running, try `curl https://localhost:8443/` or `https://gobi.local:8443/` (the latter needs both `127.0.0.1 gobi.local` and `::1 gobi.local` in `/etc/hosts`; with only the IPv4 line, macOS waits about 5 seconds for a multicast DNS answer for the IPv6 lookup).
 
 ## Project layout
 

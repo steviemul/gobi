@@ -58,3 +58,17 @@ func BuildContentResponse(version string, status string, contentType string, bod
 		body:    body,
 	}, nil
 }
+
+// BuildRedirectResponse returns a bodiless redirect to location. status is the
+// full status line value, e.g. "302 Found".
+func BuildRedirectResponse(version string, status string, location string) (GobiResponse, error) {
+	resp, err := BuildResponse(version, status, "")
+	if err != nil {
+		return resp, err
+	}
+
+	delete(resp.headers, "Content-Type")
+	resp.SetHeader("Location", location)
+
+	return resp, nil
+}

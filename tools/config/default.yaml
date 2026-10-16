@@ -8,6 +8,7 @@ tls:
   port: 8443
   key: tools/certs/gobi-key.pem
   cert: tools/certs/gobi.pem
+  force: true
 routes:
   - path: /static
     root: tools/www/static

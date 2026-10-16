@@ -24,7 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("Server listening on port %s, Ctrl+c to exit\n", config.Port())
+	fmt.Println("Ctrl+c to exit")
 
 	listener.Serve()
 }

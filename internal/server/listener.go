@@ -18,8 +18,14 @@ import (
 
 const ProtocolTCP = "tcp"
 
+// boundListener tags a listener with whether connections on it are TLS.
+type boundListener struct {
+	net.Listener
+	secure bool
+}
+
 type GobiListener struct {
-	listeners         []net.Listener
+	listeners         []boundListener
 	config            config.GobiConfig
 	requestDispatcher handler.RequestDispatcher
 }
@@ -37,6 +43,7 @@ func createTLSListener(config config.GobiConfig) net.Listener {
 	)
 	if err != nil {
 		log.Printf("error reading certificates - %s", err.Error())
+		_ = tcpListener.Close() // don't leave the port bound with nobody accepting
 		return nil
 	}
 
@@ -54,10 +61,23 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 		return err
 	}
 
-	sl.listeners = append(sl.listeners, listener)
+	sl.listeners = append(sl.listeners, boundListener{Listener: listener})
+	log.Printf("http listening on port %s", portOf(listener))
 
 	if config.TLS().Enabled {
-		sl.listeners = append(sl.listeners, createTLSListener(config))
+		// createTLSListener logs the reason and returns nil on failure; the
+		// plain listener keeps working without it.
+		tlsListener := createTLSListener(config)
+
+		switch {
+		case tlsListener != nil:
+			sl.listeners = append(sl.listeners, boundListener{Listener: tlsListener, secure: true})
+			log.Printf("https listening on port %s", portOf(tlsListener))
+		case config.TLS().Force:
+			// Redirecting to a listener that doesn't exist would lock everyone out.
+			sl.Shutdown()
+			return errors.New("tls.force is set but the TLS listener failed to start")
+		}
 	}
 
 	sl.config = config
@@ -66,13 +86,23 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 	return nil
 }
 
+// portOf returns the port a listener is actually bound to.
+func portOf(l net.Listener) string {
+	_, port, err := net.SplitHostPort(l.Addr().String())
+	if err != nil {
+		return l.Addr().String()
+	}
+
+	return port
+}
+
 func (sl *GobiListener) Shutdown() {
 	for _, listener := range sl.listeners {
 		_ = listener.Close()
 	}
 }
 
-func (sl *GobiListener) poll(listener net.Listener) error {
+func (sl *GobiListener) poll(listener boundListener) error {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -87,7 +117,7 @@ func (sl *GobiListener) poll(listener net.Listener) error {
 			continue
 		}
 
-		go sl.handleConnection(conn)
+		go sl.handleConnection(conn, listener.secure)
 	}
 }
 
@@ -99,7 +129,7 @@ func (sl *GobiListener) Serve() {
 
 	for _, listener := range sl.listeners {
 		wg.Add(1)
-		go func(l net.Listener) {
+		go func(l boundListener) {
 			defer wg.Done()
 			_ = sl.poll(l)
 		}(listener)
@@ -108,7 +138,7 @@ func (sl *GobiListener) Serve() {
 	wg.Wait()
 }
 
-func (sl *GobiListener) handleConnection(conn net.Conn) {
+func (sl *GobiListener) handleConnection(conn net.Conn, secure bool) {
 	defer func() { _ = conn.Close() }()
 
 	config := sl.config
@@ -134,7 +164,6 @@ func (sl *GobiListener) handleConnection(conn net.Conn) {
 		}
 
 		request, err := http.ParseRequest(reader)
-
 		if err != nil {
 
 			var ne net.Error
@@ -156,8 +185,11 @@ func (sl *GobiListener) handleConnection(conn net.Conn) {
 			return
 		}
 
-		resp, err := sl.requestDispatcher.HandleRequest(&request)
-		if err != nil {
+		var resp http.GobiResponse
+
+		if !secure && config.TLS().Enabled && config.TLS().Force {
+			resp = redirectToHTTPS(&request, config.TLS().Port)
+		} else if resp, err = sl.requestDispatcher.HandleRequest(&request); err != nil {
 			resp = handlerErrorResponse(err)
 		}
 
