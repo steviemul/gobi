@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"log"
 
 	"github.com/steviemul/gobi/internal/config"
 	"github.com/steviemul/gobi/internal/server/http"
@@ -19,6 +20,22 @@ func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 
 	if config.Status() {
 		handlers = append(handlers, GobiRequestHandler{})
+	}
+
+	for _, route := range config.Routes() {
+
+		if route.Root != "" && route.Proxy != "" {
+			log.Printf("invalid route definition for %s, cannot contain both root and proxy", route.Path)
+			continue
+		}
+
+		if route.Root != "" {
+			handlers = append(handlers, FileRequestHandler{
+				root: route.Root,
+				path: route.Path,
+				host: route.Host,
+			})
+		}
 	}
 
 	return handlers
