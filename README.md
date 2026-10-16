@@ -44,7 +44,7 @@ make build                              # builds bin/gobi
 
 ## Configuration
 
-The only command-line flag is `-config`, the path to an optional YAML file. If the flag is omitted or the file doesn't exist, defaults are used. A file that exists but can't be parsed is an error.
+The only command-line flag is `-config`, the path to an optional YAML file. If the flag is omitted or the file doesn't exist, defaults are used (a missing file also logs a warning). A file that exists but can't be parsed is an error.
 
 ```yaml
 port: 8090

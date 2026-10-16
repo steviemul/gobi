@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"io/fs"
+	"log"
 	"os"
 	"time"
 
@@ -101,6 +102,8 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 	data, err := os.ReadFile(configPath)
 
 	if errors.Is(err, fs.ErrNotExist) {
+		log.Printf("warning: config file %q not found, using defaults", configPath)
+
 		return config, nil
 	}
 

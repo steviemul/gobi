@@ -1,0 +1,17 @@
+port: 8080
+status: true
+idleTimeoutSeconds: 60
+readTimeoutSeconds: 10
+writeTimeoutSeconds: 10
+tls:
+  enabled: true
+  port: 8443
+  key: tools/certs/gobi-key.pem
+  cert: tools/certs/gobi.pem
+  force: true
+routes:
+  - path: /static
+    root: tools/www/static
+  - path: /static
+    host: gobi.local
+    root: tools/www/static
