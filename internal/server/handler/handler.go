@@ -84,6 +84,7 @@ func addIndexHandler(route config.Route, handlers []RequestHandler) []RequestHan
 		root: route.Root,
 		path: route.Path,
 		host: route.Host,
+		html: true,
 	})
 
 	log.Printf("handler created index handler on [%s]", route.Path)

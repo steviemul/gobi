@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Index of {{.Title}}</title>
+    <style>
+      body { font: 16px/1.6 system-ui, sans-serif; margin: 2rem auto; max-width: 40rem; padding: 0 1rem; }
+      ul { list-style: none; padding: 0; }
+      li { padding: 0.15rem 0; }
+      .icon { display: inline-block; width: 1.5em; }
+      a { text-decoration: none; }
+      a:hover { text-decoration: underline; }
+    </style>
+  </head>
+  <body>
+    <h1>Index of {{.Title}}</h1>
+    <ul>
+{{- if .ParentHref}}
+      <li><span class="icon">{{.FolderIcon}}</span><a href="{{.ParentHref}}">..</a></li>
+{{- end}}
+{{- range .Rows}}
+      <li><span class="icon">{{if .Directory}}{{$.FolderIcon}}{{else}}{{$.FileIcon}}{{end}}</span><a href="{{.Href}}">{{.Name}}</a></li>
+{{- else}}
+      <li>(empty)</li>
+{{- end}}
+    </ul>
+  </body>
+</html>

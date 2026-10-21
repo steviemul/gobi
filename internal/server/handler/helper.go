@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net"
+	"net/url"
 	"strings"
 
 	"github.com/steviemul/gobi/internal/server/http"
@@ -22,6 +23,13 @@ func pathResourceWithDefault(path string, target string, defaultPath string) (re
 	}
 
 	resource = strings.TrimPrefix(rest, "/")
+
+	// Targets are percent-encoded ("a%20b.txt"); handlers need the real name.
+	// Callers still validate the decoded path, so "%2e%2e" can't escape the root.
+	resource, err := url.PathUnescape(resource)
+	if err != nil {
+		return "", false
+	}
 
 	if resource == "" {
 		resource = defaultPath

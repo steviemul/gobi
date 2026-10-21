@@ -17,7 +17,14 @@ type IndexRequestHandler struct {
 	root string
 	host string
 	path string
+
+	// html renders directory listings as a web page instead of JSON. Files are
+	// always returned as their contents.
+	html bool
 }
+
+// directoryRenderer turns a directory's entries into a response.
+type directoryRenderer func(entries []IndexEntry) http.GobiResponse
 
 func (eh IndexRequestHandler) HandleRequest(r *http.GobiRequest) http.GobiResponse {
 	switch r.Method() {
@@ -45,7 +52,15 @@ func (eh IndexRequestHandler) CanProcess(r *http.GobiRequest) bool {
 func (eh IndexRequestHandler) Get(r *http.GobiRequest) http.GobiResponse {
 	path, _ := pathResourceWithDefault(eh.path, r.Target(), "")
 
-	return getIndexContent(getRoot(eh.root), path)
+	var render directoryRenderer // nil renders JSON
+
+	if eh.html {
+		render = func(entries []IndexEntry) http.GobiResponse {
+			return renderIndexHTML(eh.path, strings.TrimSuffix(path, "/"), entries)
+		}
+	}
+
+	return getIndexContent(getRoot(eh.root), path, render)
 }
 
 func getRoot(root string) string {
@@ -67,16 +82,15 @@ type IndexEntry struct {
 }
 
 // getIndexContent serves the target at path, relative to root. A blank path
-// targets root itself. A directory is answered with a JSON array of its
-// entries; a file is answered with its contents and a content type taken from
-// its extension.
-func getIndexContent(root string, path string) http.GobiResponse {
-
+// targets root itself. A directory is answered by render, or with a JSON array
+// of its entries when render is nil; a file is answered with its contents and a
+// content type taken from its extension.
+func getIndexContent(root string, path string, render directoryRenderer) http.GobiResponse {
 	// fs.ValidPath rejects "..", so the target can't escape root. It also
 	// rejects a trailing slash, which is fine for a directory, so trim it first.
 	path = strings.TrimSuffix(path, "/")
 
-	if path != "" && !fs.ValidPath(path) {
+	if path != "" && (!fs.ValidPath(path) || strings.ContainsRune(path, 0)) {
 		return notFoundResponse()
 	}
 
@@ -88,11 +102,10 @@ func getIndexContent(root string, path string) http.GobiResponse {
 	}
 
 	if info.IsDir() {
-		return directoryResponse(target)
+		return directoryResponse(target, render)
 	}
 
 	data, err := os.ReadFile(target)
-
 	if err != nil {
 		return statErrorResponse(target, err)
 	}
@@ -108,7 +121,7 @@ func getIndexContent(root string, path string) http.GobiResponse {
 	return response
 }
 
-func directoryResponse(dir string) http.GobiResponse {
+func directoryResponse(dir string, render directoryRenderer) http.GobiResponse {
 	dirEntries, err := os.ReadDir(dir)
 	if err != nil {
 		return statErrorResponse(dir, err)
@@ -122,6 +135,10 @@ func directoryResponse(dir string) http.GobiResponse {
 			Name:      entry.Name(),
 			Directory: entry.IsDir(),
 		})
+	}
+
+	if render != nil {
+		return render(entries)
 	}
 
 	body, err := json.Marshal(entries)

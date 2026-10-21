@@ -40,6 +40,8 @@ func TestGetIndexContent(t *testing.T) {
 		{"text file", "a.txt", "200 OK", "text/plain; charset=utf-8", "hello"},
 		{"nested html file", "docs/page.html", "200 OK", "text/html; charset=utf-8", "<p>hi</p>"},
 		{"unknown extension", "blob.unknownext", "200 OK", "application/octet-stream", "\x00\x01\x02"},
+		{"encoded traversal", "%2e%2e/x", "404 Not Found", "", ""},
+		{"nul byte", "a.txt\x00", "404 Not Found", "", ""},
 		{"missing", "nope.txt", "404 Not Found", "", ""},
 		{"parent traversal", "../x", "404 Not Found", "", ""},
 		{"traversal via subdirectory", "docs/../../x", "404 Not Found", "", ""},
@@ -47,7 +49,7 @@ func TestGetIndexContent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp := getIndexContent(root, tt.path)
+			resp := getIndexContent(root, tt.path, nil)
 			raw := resp.String()
 
 			if !strings.HasPrefix(raw, "HTTP/1.1 "+tt.wantStatus+"\r\n") {

@@ -7,3 +7,9 @@ import "embed"
 //
 //go:embed gobi
 var Content embed.FS
+
+// Templates holds the HTML templates under templates/, addressed as
+// "templates/index.html" and so on.
+//
+//go:embed templates
+var Templates embed.FS
