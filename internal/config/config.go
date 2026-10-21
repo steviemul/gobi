@@ -13,12 +13,14 @@ import (
 const (
 	DefaultHTTPPort            = "8080"
 	DefaultTLSPort             = "8443"
+	LoopbackAddress            = "127.0.0.1"
 	DefaultIdleTimeoutSeconds  = 60
 	DefaultReadTimeoutSeconds  = 10
 	DefaultWriteTimeoutSeconds = 10
 )
 
 type GobiConfig struct {
+	listen       string
 	port         string
 	status       bool
 	tls          TLS
@@ -50,6 +52,7 @@ type Route struct {
 // fileConfig mirrors the YAML file layout. Anything omitted from the file
 // keeps its default value.
 type fileConfig struct {
+	Listen              string  `yaml:"listen"`
 	Port                string  `yaml:"port"`
 	Status              *bool   `yaml:"status"`
 	TLS                 *TLS    `yaml:"tls"`
@@ -57,6 +60,12 @@ type fileConfig struct {
 	ReadTimeoutSeconds  int     `yaml:"readTimeoutSeconds"`
 	WriteTimeoutSeconds int     `yaml:"writeTimeoutSeconds"`
 	Routes              []Route `yaml:"routes"`
+}
+
+// Listen is the address the HTTP and HTTPS listeners bind to. Empty means
+// every interface, on both IPv4 and IPv6.
+func (gc *GobiConfig) Listen() string {
+	return gc.listen
 }
 
 func (gc *GobiConfig) Port() string {
@@ -118,6 +127,10 @@ func BuildConfig(configPath string) (GobiConfig, error) {
 		return config, err
 	}
 
+	if fc.Listen != "" {
+		config.listen = fc.Listen
+	}
+
 	if fc.Port != "" {
 		config.port = fc.Port
 	}
@@ -165,14 +178,15 @@ func DefaultConfig() GobiConfig {
 	}
 }
 
-// IndexConfig returns the config behind `gobi -serve`: the default HTTP port,
-// no TLS, no status page, and a single index route. The route has no path or
+// IndexConfig returns the config behind `gobi -serve`: the default HTTP port
+// on the loopback interface only, no TLS, no status page, and a single index route. The route has no path or
 // root, so it serves the current working directory at "/".
 func IndexConfig() GobiConfig {
 	config := DefaultConfig()
 
 	index := true
 
+	config.listen = LoopbackAddress
 	config.status = false
 	config.routes = []Route{{Index: &index}}
 

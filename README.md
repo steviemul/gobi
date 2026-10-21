@@ -42,7 +42,7 @@ make build                              # builds bin/gobi
 ./bin/gobi -config tools/config/default.yaml
 ```
 
-`./bin/gobi -serve` is a shortcut for browsing the current directory: it serves a listing of it at <http://localhost:8080/>, with no TLS and no status page. It can't be combined with `-config`.
+`./bin/gobi -serve` is a shortcut for browsing the current directory: it serves a listing of it at <http://localhost:8080/>, with no TLS and no status page, bound to `127.0.0.1` only so it isn't reachable from other machines. It can't be combined with `-config`.
 
 `make demo` builds the server and runs it with `tools/config/demo.yaml`, which serves a small multi-page site from `tools/www/demo`. It runs `make certs` first if the certificates don't exist, then open <https://localhost:8443/demo/>.
 
@@ -53,6 +53,7 @@ make build                              # builds bin/gobi
 The only command-line flag is `-config`, the path to an optional YAML file. If the flag is omitted or the file doesn't exist, defaults are used (a missing file also logs a warning). A file that exists but can't be parsed is an error.
 
 ```yaml
+listen: 127.0.0.1        # address to bind, default is every interface
 port: 8090
 status: true
 idleTimeoutSeconds: 60   # max wait between requests on a keep-alive connection
@@ -74,6 +75,7 @@ routes:                  # evaluated in the order listed
 
 | Key | Default | Meaning |
 |---|---|---|
+| `listen` | all interfaces | Address both the HTTP and HTTPS listeners bind to, e.g. `127.0.0.1` for local only. Empty binds IPv4 and IPv6; `0.0.0.0` is IPv4 only |
 | `port` | `8080` | TCP port to listen on |
 | `idleTimeoutSeconds` | `60` | Keep-alive idle timeout |
 | `readTimeoutSeconds` | `10` | Time allowed to receive a request |

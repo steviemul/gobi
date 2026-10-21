@@ -31,7 +31,7 @@ type GobiListener struct {
 }
 
 func createTLSListener(config config.GobiConfig) net.Listener {
-	tcpListener, err := net.Listen("tcp", ":"+config.TLS().Port)
+	tcpListener, err := net.Listen(ProtocolTCP, net.JoinHostPort(config.Listen(), config.TLS().Port))
 	if err != nil {
 		log.Printf("error creating tls listener - %s", err.Error())
 		return nil
@@ -56,13 +56,13 @@ func createTLSListener(config config.GobiConfig) net.Listener {
 
 // Listen binds the port and returns once the listener is ready to accept connections.
 func (sl *GobiListener) Listen(config config.GobiConfig) error {
-	listener, err := net.Listen(ProtocolTCP, ":"+config.Port())
+	listener, err := net.Listen(ProtocolTCP, net.JoinHostPort(config.Listen(), config.Port()))
 	if err != nil {
 		return err
 	}
 
 	sl.listeners = append(sl.listeners, boundListener{Listener: listener})
-	log.Printf("http listening on port %s", portOf(listener))
+	log.Printf("http listening on %s", listener.Addr())
 
 	if config.TLS().Enabled {
 		// createTLSListener logs the reason and returns nil on failure; the
@@ -72,7 +72,7 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 		switch {
 		case tlsListener != nil:
 			sl.listeners = append(sl.listeners, boundListener{Listener: tlsListener, secure: true})
-			log.Printf("https listening on port %s", portOf(tlsListener))
+			log.Printf("https listening on %s", tlsListener.Addr())
 		case config.TLS().Force:
 			// Redirecting to a listener that doesn't exist would lock everyone out.
 			sl.Shutdown()
@@ -84,16 +84,6 @@ func (sl *GobiListener) Listen(config config.GobiConfig) error {
 	sl.requestDispatcher = handler.BuildRequestDispatcher(config)
 
 	return nil
-}
-
-// portOf returns the port a listener is actually bound to.
-func portOf(l net.Listener) string {
-	_, port, err := net.SplitHostPort(l.Addr().String())
-	if err != nil {
-		return l.Addr().String()
-	}
-
-	return port
 }
 
 func (sl *GobiListener) Shutdown() {
