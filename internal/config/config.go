@@ -164,3 +164,17 @@ func DefaultConfig() GobiConfig {
 		routes:       []Route{},
 	}
 }
+
+// IndexConfig returns the config behind `gobi -serve`: the default HTTP port,
+// no TLS, no status page, and a single index route. The route has no path or
+// root, so it serves the current working directory at "/".
+func IndexConfig() GobiConfig {
+	config := DefaultConfig()
+
+	index := true
+
+	config.status = false
+	config.routes = []Route{{Index: &index}}
+
+	return config
+}

@@ -42,6 +42,8 @@ make build                              # builds bin/gobi
 ./bin/gobi -config tools/config/default.yaml
 ```
 
+`./bin/gobi -serve` is a shortcut for browsing the current directory: it serves a listing of it at <http://localhost:8080/>, with no TLS and no status page. It can't be combined with `-config`.
+
 `make demo` builds the server and runs it with `tools/config/demo.yaml`, which serves a small multi-page site from `tools/www/demo`. It runs `make certs` first if the certificates don't exist, then open <https://localhost:8443/demo/>.
 
 `make http-get`, `make http-post` and `make http-patch` send sample requests to a running server using JetBrains' `ijhttp` client. The requests live in `tools/http`.
