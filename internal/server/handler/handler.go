@@ -25,25 +25,31 @@ func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 			continue
 		}
 
+		if route.Index != nil && *route.Index {
+			handlers = addIndexHandler(route, handlers)
+
+			continue
+		}
+
 		if route.Root != "" {
-			handlers = append(handlers, FileRequestHandler{
-				root: route.Root,
-				path: route.Path,
-				host: route.Host,
-			})
+			handlers = addFileHandler(route, handlers)
+
+			continue
 		}
 
 		if route.Proxy != "" {
-			handlers = append(handlers, ProxyRequestHandler{
-				proxy: route.Proxy,
-				path:  route.Path,
-				host:  route.Host,
-			})
+			handlers = addProxyHandler(route, handlers)
+
+			continue
 		}
+
+		log.Printf("warning: route [%s] has no root, proxy or index, ignoring it", route.Path)
 	}
 
 	if config.Status() {
 		handlers = append(handlers, GobiRequestHandler{})
+		log.Printf("handler created status handler on")
+
 	}
 
 	return handlers
@@ -71,4 +77,40 @@ func (rd RequestDispatcher) HandleRequest(r *http.GobiRequest) (http.GobiRespons
 type RequestHandler interface {
 	HandleRequest(r *http.GobiRequest) http.GobiResponse
 	CanProcess(r *http.GobiRequest) bool
+}
+
+func addIndexHandler(route config.Route, handlers []RequestHandler) []RequestHandler {
+	handlers = append(handlers, IndexRequestHandler{
+		root: route.Root,
+		path: route.Path,
+		host: route.Host,
+	})
+
+	log.Printf("handler created index handler on [%s]", route.Path)
+
+	return handlers
+}
+
+func addFileHandler(route config.Route, handlers []RequestHandler) []RequestHandler {
+	handlers = append(handlers, FileRequestHandler{
+		root: route.Root,
+		path: route.Path,
+		host: route.Host,
+	})
+
+	log.Printf("handler created file handler on [%s]", route.Path)
+
+	return handlers
+}
+
+func addProxyHandler(route config.Route, handlers []RequestHandler) []RequestHandler {
+	handlers = append(handlers, ProxyRequestHandler{
+		proxy: route.Proxy,
+		path:  route.Path,
+		host:  route.Host,
+	})
+
+	log.Printf("handler created proxy handler on [%s]", route.Path)
+
+	return handlers
 }

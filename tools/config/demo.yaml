@@ -15,3 +15,5 @@ routes:
   - path: /demo
     host: gobi.local
     root: tools/www/demo
+  - path: /code
+    index: true

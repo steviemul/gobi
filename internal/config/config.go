@@ -42,6 +42,7 @@ type TLS struct {
 type Route struct {
 	Host  string `yaml:"host"`
 	Path  string `yaml:"path"`
+	Index *bool  `yaml:"index"`
 	Root  string `yaml:"root"`
 	Proxy string `yaml:"proxy"`
 }
