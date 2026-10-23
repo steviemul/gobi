@@ -15,6 +15,22 @@ type RequestDispatcher struct {
 	handlers []RequestHandler
 }
 
+func addRequestHandler(route config.Route, handlers []RequestHandler) []RequestHandler {
+	if route.Index != nil && *route.Index {
+		return addIndexHandler(route, handlers)
+	}
+
+	if route.Root != "" {
+		return addFileHandler(route, handlers)
+	}
+
+	if route.Proxy != "" {
+		return addProxyHandler(route, handlers)
+	}
+
+	return handlers
+}
+
 func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 	var handlers []RequestHandler
 
@@ -25,25 +41,7 @@ func createRequestHandlers(config config.GobiConfig) []RequestHandler {
 			continue
 		}
 
-		if route.Index != nil && *route.Index {
-			handlers = addIndexHandler(route, handlers)
-
-			continue
-		}
-
-		if route.Root != "" {
-			handlers = addFileHandler(route, handlers)
-
-			continue
-		}
-
-		if route.Proxy != "" {
-			handlers = addProxyHandler(route, handlers)
-
-			continue
-		}
-
-		log.Printf("warning: route [%s] has no root, proxy or index, ignoring it", route.Path)
+		handlers = addRequestHandler(route, handlers)
 	}
 
 	if config.Status() {

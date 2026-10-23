@@ -45,7 +45,7 @@ func TestProxyForwardsRequest(t *testing.T) {
 		w.Header().Set("X-Backend", "yes")
 		w.WriteHeader(nethttp.StatusCreated)
 
-		fmt.Fprintf(w, "%s %s host=%s body=%s", r.Method, r.URL.RequestURI(), r.Host, body)
+		_, _ = fmt.Fprintf(w, "%s %s host=%s body=%s", r.Method, r.URL.RequestURI(), r.Host, body)
 	}))
 	defer backend.Close()
 
