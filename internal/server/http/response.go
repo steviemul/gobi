@@ -40,6 +40,10 @@ func (gr *GobiResponse) SetHeader(name string, value string) {
 	gr.headers[name] = value
 }
 
+func (gr *GobiResponse) DeleteHeader(name string) {
+	delete(gr.headers, name)
+}
+
 func BuildResponse(version string, status string, body string) (GobiResponse, error) {
 	return BuildContentResponse(version, status, "text/plain; charset=utf-8", []byte(body))
 }

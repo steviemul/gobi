@@ -105,11 +105,14 @@ func addFileHandler(route config.Route, handlers []RequestHandler) []RequestHand
 }
 
 func addProxyHandler(route config.Route, handlers []RequestHandler) []RequestHandler {
-	handlers = append(handlers, ProxyRequestHandler{
-		proxy: route.Proxy,
-		path:  route.Path,
-		host:  route.Host,
-	})
+	proxyHandler, err := newProxyRequestHandler(route)
+	if err != nil {
+		log.Printf("invalid proxy for route [%s]: %s, ignoring it", route.Path, err)
+
+		return handlers
+	}
+
+	handlers = append(handlers, proxyHandler)
 
 	log.Printf("handler created proxy handler on [%s]", route.Path)
 

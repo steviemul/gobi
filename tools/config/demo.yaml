@@ -17,3 +17,6 @@ routes:
     root: tools/www/demo
   - path: /code
     index: true
+  - path: /proxied-path
+    proxy: http://some-backend.io/
+
